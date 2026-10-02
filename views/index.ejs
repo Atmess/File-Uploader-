@@ -78,11 +78,13 @@
                                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                                         </svg>
                                        
-                                         <span style="margin-top: 8px; text-align: center; word-break: break-all; font-weight: bold;">
+                                         <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
                                             <%= folder.name %>
                                         </span>
-                                        
-                <!-- The Folder Name -->
+                                        <form action="/deletefolder/<%= folder.id %>" method="post">
+                                            <button type="submit">Delete folder</button>
+                                        </form>
+                                     <!-- The Folder Name -->
                 
                                 </div></a>
                            <% }) %>
@@ -106,6 +108,9 @@
                             timeStyle: 'short' 
                         }) %>
                     </p>
+                    <form action="/deletefile/<%= file.id %>" method="post">
+                        <button type="submit">delete file</button>
+                    </form>
                     </div>
                     <% }) %> 
                    <% }else{ %>

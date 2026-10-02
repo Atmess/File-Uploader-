@@ -25,6 +25,8 @@ const upload = multer({storage:storage})
 indexRouter.get("/",controller.dashboard);
 indexRouter.post("/folders/new",controller.createFolderPost)
 indexRouter.get("/folder/:id",controller.getFolderGet)
+indexRouter.post("/deletefile/:id",controller.deletefilePost)
+indexRouter.post("/deletefolder/:id",controller.deletefolderPost)
 indexRouter.get("/log-in",(req,res)=>res.render("log-in"))
 indexRouter.post("/log-in",passport.authenticate("local", {
     successRedirect: "/",
