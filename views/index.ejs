@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Uploader - My Drive</title>
+</head>
+<body>
+    <header>
+        <h1>File Uploader</h1>
+        <nav>
+            <% if (locals.user) { %>
+                <span>Welcome, <%= user.username %>!</span>
+                <div style="margin-bottom: 20px;">
+                    <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
+                        🏠 My Drive (Home)
+                    </a>
+                </div>
+                <a href="/log-out">Log Out</a>
+            <% } else { %>
+                <a href="/log-in">Log In</a>
+                <a href="/register">Sign Up</a>
+            <% } %>
+        </nav>
+    </header>
+
+    <main>
+        <% if (locals.user) { %>
+            <!-- DASHBOARD: Shown only to logged-in users -->
+            <section>
+                <h2>Your Dashboard</h2>
+                
+                <div class="actions">
+                    <button id="createFolderbtn" onclick=" 
+                        document.getElementById('createFolder').style.display='inline';
+                        document.getElementById('createFolderbtn').style.display='none'
+                        document.getElementById('uploadFile').style.display='none';
+                        document.getElementById('uploadFilebtn').style.display='inline';
+                        ">Create New Folder</button>
+                    <button id="uploadFilebtn" onclick="
+                        document.getElementById('uploadFile').style.display='inline';
+                        document.getElementById('uploadFilebtn').style.display='none';
+                         document.getElementById('createFolder').style.display='none';
+                         document.getElementById('createFolderbtn').style.display='inline';
+                    ">Upload File</button>
+                    
+                </div>
+                <div>
+                     <form action="/folders/new" method="post" id="createFolder" style="display: none;" onsubmit="
+                         document.getElementById('createFolder').style.display='none';
+                         document.getElementById('createFolderbtn').style.display='inline'
+                    ">
+                        <label for="foldername">Input name:</label>
+                        <input type="text" id="foldername" name="foldername">
+                        <button type="submit">Create folder</button>
+                    </form><br>
+                   <form action="/upload" method="post" enctype="multipart/form-data" id="uploadFile" style="display: none;" onsubmit="
+                        document.getElementById('uploadFile').style.display='none';
+                        document.getElementById('uploadFilebtn').style.display='inline'
+                   ">
+                    <input type="file" name="upload" id="upload"><br>
+                    <button type="submit">Upload</button>
+                   </form>
+                </div>
+
+                <div class="content">
+                    <h3>Folders</h3>
+                    <!-- You will loop over folders here later -->
+                     <% if(locals.folders && folders.length>0){ %>
+
+                        <div style="display: flex; flex-direction: row;" >
+                            <% folders.forEach ((folder)=>{ %>
+                                <a href="/folder/<%= folder.id %>" >
+                                <div style="display: flex; flex-direction: column;">
+                                        <!-- This SVG is the Folder Icon (from Feather Icons) -->
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                             <!-- Notice the space between M22 and 19 below: -->
+                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                       
+                                         <span style="margin-top: 8px; text-align: center; word-break: break-all; font-weight: bold;">
+                                            <%= folder.name %>
+                                        </span>
+                                        
+                <!-- The Folder Name -->
+                
+                                </div></a>
+                           <% }) %>
+
+                        </div>
+                    <% }else{ %>
+
+                    <p>No folders yet.</p>
+                     <% } %>
+                    <h3>Files</h3>
+                    <% if(locals.files && files.length>0){ %>
+                    <!-- You will loop over files here later -->
+                     <div style="display: flex; flex-direction: row; gap: 10px;">
+                   <% files.forEach((file)=>{ %>
+                    <div >                    
+                    <img src="<%= file.url %>" alt="file.name" width="200" height="200">
+                    <p><%=  file.name %></p>
+                    <p>
+                        <%= new Date(file.uploadTime).toLocaleString('en-US', { 
+                            dateStyle: 'medium', 
+                            timeStyle: 'short' 
+                        }) %>
+                    </p>
+                    </div>
+                    <% }) %> 
+                   <% }else{ %>
+                    <p>no file here</p>
+                   <% } %>
+                </div>
+                </div>
+            </section>
+        <% } else { %>
+            <!-- HERO: Shown to visitors -->
+            <section>
+                <h2>Store your files securely in the cloud.</h2>
+                <p>Create an account to start uploading your files and organizing them into folders.</p>
+                <a href="/register"><button>Get Started</button></a>
+            </section>
+        <% } %>
+    </main>
+</body>
+</html>

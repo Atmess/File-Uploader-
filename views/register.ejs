@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - File Uploader</title>
+</head>
+<body>
+    <header>
+        <h1>File Uploader</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/log-in">Log In</a>
+        </nav>
+    </header>
+
+<% if (locals.errors) { %>
+    <div class="error-messages" style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 15px;">
+        <ul>
+            <% errors.forEach(function(error) { %>
+                <li><%= error.msg %></li>
+            <% }); %>
+        </ul>
+    </div>
+<% } %>
+
+    <main>
+        <h2>Create an Account</h2>
+        
+        <form action="/register" method="POST">
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+             <div>
+                <label for="confirmPass">Confirm Password:</label>
+                <input type="password" id="confirmPass" name="confirmPass" required>
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+    </main>
+</body>
+</html>

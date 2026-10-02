@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User { 
+  id        Int     @id @default(autoincrement()) 
+  email     String  @unique
+  username  String  @unique
+  password  String
+  folders   Folder[]
+  files     File[]
+} 
+
+model Folder {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  
+  // Links the folder to its owner
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  // A folder can contain many files
+  files     File[]
+}
+
+model File {
+  id         Int      @id @default(autoincrement())
+  name       String   // The original name of the file (e.g., "vacation.png")
+  url        String   // The path or Cloudinary URL where the file is actually stored
+  size       Int      // Size of the file in bytes (useful for the project requirements)
+  uploadTime DateTime @default(now())
+
+  // Links the file to its owner
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+
+  // Links the file to a specific folder (Optional, in case files are in a "root" directory)
+  folder     Folder?  @relation(fields: [folderId], references: [id])
+  folderId   Int?
+}
+
+// Optional: If you use prisma-session-store for Express sessions (Passport.js)
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}

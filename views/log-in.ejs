@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+     <link rel="stylesheet" href="/stylesheets/style.css">
+
+  <title>Log In</title>
+</head>
+<body>
+  <div>
+  <h1>Please Log In</h1>
+  <form action="/log-in" method="POST">
+    <label for="username">Username</label>
+    <input id="username" name="username" placeholder="username" type="text" required />
+    
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required />
+    
+    <button type="submit">Log In</button>
+  </form>
+  <a href="/register">Don't have an account? Sign up here</a>
+  </div>
+</body>
+</html>
