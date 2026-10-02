@@ -2,7 +2,8 @@ const bcrypt= require("bcryptjs")
 const prisma= require("../lib/prisma")
 require("dotenv").config();
 const {validationResult}= require("express-validator")
-const fs =require("fs")
+const fs =require("fs");
+const { error } = require("console");
 
 
 const createUserPost = async (req,res)=>{
@@ -35,15 +36,21 @@ const uploadfile = async (req,res)=>{
     if(!file){
         return res.status(400).send("no file send")
     }
+    const targetFolderId = parseInt(req.params.id)
     await prisma.file.create({
         data:{
             name: file.originalname,  // The original name from the user's computer
             size: file.size,          // The size in bytes
             url: file.path,           // Where Multer saved the file
-            userId: req.user.id       // The logged-in user from Passport
+            userId: parseInt(req.user.id),
+            folderId:targetFolderId       // The logged-in user from Passport
         }
     })
-    res.redirect("/")
+        if (targetFolderId) {
+            res.redirect(`/folder/${targetFolderId}`);
+        } else {
+            res.redirect("/");
+        }
     }catch(error){
         console.error(error)
         res.status(500).send("error saving the file")
@@ -52,7 +59,7 @@ const uploadfile = async (req,res)=>{
 
 const dashboard = async (req,res) => {
     if(!req.user){
-       return res.render("index",{user:null , files:[], folders:[]})
+       return res.render("index",{user:null , files:[], folders:[] ,currentFolderId: null})
     }
     try{
     const folderuser = await prisma.folder.findMany({
@@ -64,7 +71,7 @@ const dashboard = async (req,res) => {
         }
     })
 
-    res.render("index",{user:req.user , files:fileuser, folders:folderuser})
+    res.render("index",{user:req.user , files:fileuser, folders:folderuser,currentFolderId: null})
     }catch(error){
         console.error(error)
         res.status(500).send("error loading file")
@@ -108,7 +115,7 @@ try{
         where:{folderId: folder_Id}
     })
 
-    res.render("index",{user:req.user ,files:fileinFolder , folders:folder})
+    res.render("index",{user:req.user ,files:fileinFolder , folders:folder ,currentFolderId: folder_Id})
 }catch(error){
     console.error(error)
     res.status(500).send("error in getting Folder")
@@ -127,7 +134,7 @@ const deletefilePost = async (req,res) => {
         });
 
         // Security check: Make sure the file exists and the logged-in user actually owns it!
-        if (!file || file.userId !== req.user.id) {
+        if (!file || file.userId !== parseInt(req.user.id)) {
             return res.status(403).send("Unauthorized to delete this file.");
         }
 
@@ -189,4 +196,35 @@ const deletefolderPost = async (req,res) => {
     }
     
 }
-module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost}
+
+const moveFilePost = async (req,res) => {
+      if (!req.user) {
+        return res.redirect("/log-in");
+    }
+    try{
+    const fileId = parseInt(req.params.id);
+   const tofolderId = req.body.toFolder === "" ? null : parseInt(req.body.toFolder);
+    const file = await prisma.file.findUnique({
+        where:{id:fileId}
+    })
+    if (!file || file.userId !== req.user.id) {
+            return res.status(403).send("Unauthorized to move this file.");
+        }
+
+        await prisma.file.update({
+            where:{id:fileId},
+            data:{
+                folderId:tofolderId
+            }
+        })
+        if (tofolderId === null) {
+            res.redirect("/");
+        } else {
+            res.redirect(`/folder/${tofolderId}`);
+        }
+    }catch(error){
+        console.error(error)
+        res.status(500).send("error sending File")
+    }
+}
+module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost}

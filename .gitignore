@@ -4,3 +4,4 @@ node_modules
 .windsurf/
 /generated/prisma
 .env
+uploads/
