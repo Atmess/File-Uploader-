@@ -54,7 +54,7 @@
                         <input type="text" id="foldername" name="foldername">
                         <button type="submit">Create folder</button>
                     </form><br>
-                   <form action="/upload/<%= locals.currentFolderId ? currentFolderId : '' %>" method="post" enctype="multipart/form-data" id="uploadFile" style="display: none;" onsubmit="
+                   <form action="/upload/<%= locals.currentFolderId || '' %>" method="post" enctype="multipart/form-data" id="uploadFile" style="display: none;" onsubmit="
                         document.getElementById('uploadFile').style.display='none';
                         document.getElementById('uploadFilebtn').style.display='inline'
                    ">
@@ -83,8 +83,10 @@
                                         </div>                                
                             </a>
                             <% folders.forEach ((folder)=>{ %>
-                                <a href="/folder/<%= folder.id %>" >
+                                
+                                
                                 <div style="display: flex; flex-direction: column;">
+                                    <a href="/folder/<%= folder.id %>" style="display: flex; flex-direction: column;" >
                                         <!-- This SVG is the Folder Icon (from Feather Icons) -->
                                         <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                              <!-- Notice the space between M22 and 19 below: -->
@@ -94,28 +96,51 @@
                                          <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
                                             <%= folder.name %>
                                         </span>
+                                        </a>
                                         <form action="/deletefolder/<%= folder.id %>" method="post">
                                             <button type="submit">Delete folder</button>
+                                        </form>
+                                        <button type="button" onclick=" document.getElementById('iditname<%= folder.id %>').style.display='inline' ">edit name</button>
+
+                                        <form action="/editname/<%= folder.id %>" method="post" id="iditname<%= folder.id %>" style="display: none;">
+                                            <input type="text" name="editname"><br>
+                                            <button type="submit">submit</button>
                                         </form>
                                         
                                      <!-- The Folder Name -->
                 
-                                </div></a>
+                                </div>
+                                        
+                                
                            <% }) %>
 
                         </div>
                     <% }else{ %>
 
-                    <p>No folders yet.</p>
+                    <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
+                                <div style="display: flex; flex-direction: column;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                             <!-- Notice the space between M22 and 19 below: -->
+                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                       
+                                         <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
+                                            Home
+                                        </span>
+                                        </div>                                
+                            </a>
                      <% } %>
                     <h3>Files</h3>
                     <% if(locals.files && files.length>0){ %>
                     <!-- You will loop over files here later -->
                      <div style="display: flex; flex-direction: row; gap: 10px;">
                    <% files.forEach((file)=>{ %>
-                    <div >                    
+                    <div > 
+                        <div ><a href="">                   
                     <img src="/<%= file.url %>" alt="file.name" width="200" height="200">
                     <p><%=  file.name %></p>
+                    </a>
+                    </div>
                     <p>
                         <%= new Date(file.uploadTime).toLocaleString('en-US', { 
                             dateStyle: 'medium', 
@@ -125,14 +150,14 @@
                     <form action="/deletefile/<%= file.id %>" method="post">
                         <button type="submit">delete file</button>
                     </form>
-                    <button onclick="
-                    document.getElementById('movefileform').style.display='inline'
+                    <button type="button" onclick="
+                    document.getElementById('movefileform<%= file.id %>').style.display='inline'
                     ">move file</button>
-                    <form action="/movefile/<%= file.id %>" method="POST" id="movefileform" style="display: none;" onsubmit="
-                    document.getElementById('movefileform').style.display='none'
+                    <form action="/movefile/<%= file.id %>" method="POST" id="movefileform<%= file.id %>" style="display: none;" onsubmit="
+                    document.getElementById('movefileform<%= file.id %>').style.display='none'
                     " >
                         <select name="toFolder" id="toFolder">
-                            <option value="">Root folder</option>
+                            <option value="">Home folder</option>
                             
                             <!-- Make sure you pass the array of folders from your controller -->
                             <% folders.forEach((folder) => { %>
@@ -148,6 +173,12 @@
                         
                         <!-- You need a button to actually submit the form! -->
                         <button type="submit">Move File</button>
+                    </form>
+                    <button type="button" onclick=" document.getElementById('iditfilename<%= file.id %>').style.display='inline' ">edit name</button>
+
+                    <form action="/editfilename/<%= file.id %>" method="post" id="iditfilename<%= file.id %>" style="display: none;">
+                        <input type="text" name="editfilename"><br>
+                        <button type="submit">submit</button>
                     </form>
                     </div>
                     <% }) %> 

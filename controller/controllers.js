@@ -227,4 +227,60 @@ const moveFilePost = async (req,res) => {
         res.status(500).send("error sending File")
     }
 }
-module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost}
+
+const editfoldernamePost = async (req,res)=>{
+    if (!req.user) {
+        return res.redirect("/log-in");
+    }
+    try{
+    const folderId = parseInt(req.params.id);
+    const updatename = req.body.editname;
+    const folder = await prisma.folder.findUnique({
+        where:{id:folderId}
+    })
+
+    if(!folder || folder.userId !== req.user.id){
+        return res.status(403).send("Unauthorized to edit this folder.")
+    }
+        await prisma.folder.update({
+            where:{id:folderId},
+            data:{
+                name:updatename
+            }
+        })
+        res.redirect("/")
+    }catch(error){
+        console.error(error);
+        res.status(500).send("error to change folder name")
+        
+    }
+
+}
+const editfilename = async (req,res) => {
+      if (!req.user) {
+        return res.redirect("/log-in");
+    }
+    try{
+    const fileId = parseInt(req.params.id);
+    const updatename = req.body.editfilename;
+    const file = await prisma.file.findUnique({
+        where:{id:fileId}
+    })
+
+    if(!file || file.userId !== parseInt(req.user.id)){
+        return res.status(403).send("Unauthorized to edit this file.")
+    }
+        await prisma.file.update({
+            where:{id:fileId},
+            data:{
+                name:updatename
+            }
+        })
+        res.redirect("/")
+    }catch(error){
+        console.error(error);
+        res.status(500).send("error to change file name")
+        
+    }
+}
+module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost,editfoldernamePost,editfilename}

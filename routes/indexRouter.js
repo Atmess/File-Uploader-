@@ -28,6 +28,8 @@ indexRouter.get("/folder/:id",controller.getFolderGet)
 indexRouter.post("/deletefile/:id",controller.deletefilePost)
 indexRouter.post("/deletefolder/:id",controller.deletefolderPost)
 indexRouter.post("/movefile/:id",controller.moveFilePost)
+indexRouter.post("/editname/:id",controller.editfoldernamePost)
+indexRouter.post("/editfilename/:id",controller.editfilename)
 indexRouter.get("/log-in",(req,res)=>res.render("log-in"))
 indexRouter.post("/log-in",passport.authenticate("local", {
     successRedirect: "/",
