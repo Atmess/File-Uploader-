@@ -5,22 +5,7 @@ const controller = require("../controller/controllers");
 const { body } = require("express-validator");
 const passport = require("../config/passport");
 const path = require("path")
-const storage = multer.diskStorage({
-  // 1. Tell Multer where to put the file
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  // 2. Tell Multer what to name the file
-  filename: function (req, file, cb) {
-    // Extract the original extension (e.g., ".png")
-    const ext = path.extname(file.originalname);
-    
-    // Create a unique name: timestamp + random number + original extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
-  }
-});
-const upload = multer({storage:storage})
+const upload = multer({storage:multer.memoryStorage()})
 
 indexRouter.get("/",controller.dashboard);
 indexRouter.post("/folders/new",controller.createFolderPost)
@@ -30,6 +15,8 @@ indexRouter.post("/deletefolder/:id",controller.deletefolderPost)
 indexRouter.post("/movefile/:id",controller.moveFilePost)
 indexRouter.post("/editname/:id",controller.editfoldernamePost)
 indexRouter.post("/editfilename/:id",controller.editfilename)
+indexRouter.get("/file/:id",controller.fileinfoGet)
+indexRouter.get("/download/:id",controller.downloadFileGet)
 indexRouter.get("/log-in",(req,res)=>res.render("log-in"))
 indexRouter.post("/log-in",passport.authenticate("local", {
     successRedirect: "/",

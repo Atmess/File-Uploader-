@@ -136,8 +136,8 @@
                      <div style="display: flex; flex-direction: row; gap: 10px;">
                    <% files.forEach((file)=>{ %>
                     <div > 
-                        <div ><a href="">                   
-                    <img src="/<%= file.url %>" alt="file.name" width="200" height="200">
+                        <div ><a href="/file/<%= file.id %>">                   
+                    <img src="<%= file.url %>" alt="file.name" width="200" height="200">
                     <p><%=  file.name %></p>
                     </a>
                     </div>
@@ -180,6 +180,9 @@
                         <input type="text" name="editfilename"><br>
                         <button type="submit">submit</button>
                     </form>
+                    <a href="/download/<%= file.id %>">
+                    <button type="button">Download File</button>
+                    </a>
                     </div>
                     <% }) %> 
                    <% }else{ %>
@@ -197,5 +200,6 @@
             </section>
         <% } %>
     </main>
+   
 </body>
 </html>

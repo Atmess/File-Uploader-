@@ -3,8 +3,10 @@ const prisma= require("../lib/prisma")
 require("dotenv").config();
 const {validationResult}= require("express-validator")
 const fs =require("fs");
-const { error } = require("console");
-
+const path = require("path");
+const multer = require("multer");
+const { createClient, AuthWeakPasswordError } = require("@supabase/supabase-js");
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 const createUserPost = async (req,res)=>{
     const error = validationResult(req);
@@ -31,19 +33,27 @@ const createUserPost = async (req,res)=>{
 }
 
 const uploadfile = async (req,res)=>{
+    if (!req.user) return res.redirect('/log-in');
     try{
     const file = req.file
     if(!file){
         return res.status(400).send("no file send")
     }
+    const uniqeName = `${Date.now()}-${file.originalname}`
+    const {data,error}= await supabase.storage.from('File_upload').upload(uniqeName,file.buffer,{
+        contentType:file.mimetype
+    })
+    if(error) throw error;
     const targetFolderId = parseInt(req.params.id)
+    const {data :publicUrlData}= supabase.storage.from('File_upload').getPublicUrl(uniqeName)
+    const fileUrl = publicUrlData.publicUrl 
     await prisma.file.create({
         data:{
             name: file.originalname,  // The original name from the user's computer
             size: file.size,          // The size in bytes
-            url: file.path,           // Where Multer saved the file
+            url: fileUrl,           // Where Multer saved the file
             userId: parseInt(req.user.id),
-            folderId:targetFolderId       // The logged-in user from Passport
+            folderId:req.params.id? targetFolderId:null    // The logged-in user from Passport
         }
     })
         if (targetFolderId) {
@@ -70,7 +80,7 @@ const dashboard = async (req,res) => {
         folderId: null //
         }
     })
-
+   
     res.render("index",{user:req.user , files:fileuser, folders:folderuser,currentFolderId: null})
     }catch(error){
         console.error(error)
@@ -138,10 +148,10 @@ const deletefilePost = async (req,res) => {
             return res.status(403).send("Unauthorized to delete this file.");
         }
 
-        // 2. Delete the actual file from your "uploads" folder
-        // We check if it exists first so the server doesn't crash if the file is already gone
-        if (fs.existsSync(file.url)) {
-            fs.unlinkSync(file.url); 
+        const fileName = decodeURIComponent(file.url.split('/').pop())
+        const {error:storageError} = await supabase.storage.from('File_upload').remove([fileName])       
+        if(storageError){
+            console.error("Supabase deletion error:", storageError)
         }
 
         // 3. Delete the record from Prisma
@@ -166,7 +176,7 @@ const deletefolderPost = async (req,res) => {
         const folder = await prisma.folder.findUnique({
             where:{id:folderId}
         }) 
-        if(!folder || folder.userId !== req.user.id){
+        if(!folder || folder.userId !== parseInt(req.user.id)){
             return res.status(403).send("Unauthorized to delete this folder.")
         }
 
@@ -175,11 +185,13 @@ const deletefolderPost = async (req,res) => {
             where:{folderId:folderId}
         })
         // 2. Loop through them and delete every physical file from your hard drive
-        for(const file in fileinfolder){
-            if(fs.existsSync(file.url)){
-                fs.unlinkSync(file.url)
+       if(fileinfolder.length>0){
+        const fileNames = fileinfolder.map(file=>decodeURIComponent(file.url.split('/').pop()))
+        const {error:storageError}=await supabase.storage.from('File_upload').remove(fileNames)
+        if (storageError) {
+                console.error("Supabase folder files deletion error:", storageError);
             }
-        }
+       }
         // 3. Delete the file records from the database
         await prisma.file.deleteMany({
             where:{folderId:folderId}
@@ -283,4 +295,63 @@ const editfilename = async (req,res) => {
         
     }
 }
-module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost,editfoldernamePost,editfilename}
+
+const fileinfoGet=async (req,res)=>{
+      if (!req.user) {
+        return res.redirect("/log-in");
+    }
+try{
+    const  fileId = parseInt(req.params.id);
+    const folder = await prisma.folder.findMany({
+        where:{userId:req.user.id}
+    })
+    const file = await prisma.file.findUnique({
+        where:{id:fileId},
+        include:{
+            user:true,
+            folder:true
+        }
+    })
+
+    if(!file || file.userId !== parseInt(req.user.id)){
+        return res.status(403).send("Unauthorized to edit this file.")
+    }
+    res.render("file-info",{file:file,user:req.user,folders:folder})
+}catch(err){
+    console.log(err)
+    res.status(500).send("error get file info")
+}
+}
+
+const downloadFileGet = async (req,res)=>{
+    if (!req.user) {
+        return res.redirect("/log-in");
+    }
+    try{
+    const fileId = parseInt(req.params.id)
+    const file = await prisma.file.findUnique({
+        where:{id:fileId}
+    })
+    if(!file || file.userId !== req.user.id){
+        return res.status(403).send("Unauthorized to edit this file.")
+    }
+    const filepath = path.join(process.cwd(),file.url)
+    const fileExtension = path.extname(file.url);
+        
+        // 2. Check if the file.name already has the extension. If not, add it!
+        let downloadName = file.name;
+        if (!downloadName.endsWith(fileExtension)) {
+            downloadName += fileExtension;
+        }
+    res.download(filepath, downloadName);
+    }catch(err){
+        console.error(err)
+        res.status(500).send("error downloading file")
+    }
+
+
+}
+module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost,editfoldernamePost,editfilename,fileinfoGet,
+    downloadFileGet
+
+}

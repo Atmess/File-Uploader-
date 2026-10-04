@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= file.name %> - Details</title>
+</head>
+<body>
+        <header>
+        <h1>File Uploader</h1>
+        <nav>
+            <% if (locals.user) { %>
+                <span>Welcome, <%= user.username %>!</span>
+                <div style="margin-bottom: 20px;">
+                    <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
+                         My Drive (Home)
+                    </a>
+                </div>
+                <a href="/log-out">Log Out</a>
+            <% } else { %>
+                <a href="/log-in">Log In</a>
+                <a href="/register">Sign Up</a>
+            <% } %>
+        </nav>
+    </header>
+    <div class="file-details">
+        <h2>File Details</h2>
+        
+        <!-- File Preview -->
+        <div class="preview">
+            <img src="<%= file.url %>" alt="<%= file.name %>" width="300">
+        </div>
+
+        <!-- File Metadata -->
+        <ul style="list-style-type: none; padding: 0;">
+            <li><strong>Name:</strong> <%= file.name %></li>
+            <!-- Converts bytes to KB for easier reading -->
+            <li><strong>Size:</strong> <%= (file.size / 1024).toFixed(2) %> KB</li>
+            <!-- Formats the timestamp into a readable date string -->
+            <li><strong>Uploaded:</strong>    <%= new Date(file.uploadTime).toLocaleString('en-US', { 
+                            dateStyle: 'medium', 
+                            timeStyle: 'short' 
+                        }) %>
+            <li><strong>Owner:</strong>  <%= file.user.username %></li>
+            <li><strong>Folder:</strong><%= file.folder? file.folder.name : 'Home Folder' %></li>
+            <button type="button" onclick="
+                    document.getElementById('movefileform<%= file.id %>').style.display='inline'
+                    ">move file</button>
+                    <form action="/movefile/<%= file.id %>" method="POST" id="movefileform<%= file.id %>" style="display: none;" onsubmit="
+                    document.getElementById('movefileform<%= file.id %>').style.display='none'
+                    " >
+                        <select name="toFolder" id="toFolder">
+                            <option value="">Home folder</option>
+                            
+                            <!-- Make sure you pass the array of folders from your controller -->
+                            <% folders.forEach((folder) => { %>
+                                
+                                <!-- The value is the folder ID (for Prisma), the text is the name (for the user) -->
+                                <option value="<%= folder.id %>"> 
+                                    <%= folder.name %> 
+                                </option> 
+
+                            <% }) %>
+
+                        </select>
+                        
+                        <!-- You need a button to actually submit the form! -->
+                        <button type="submit">Move File</button>
+                    </form>
+
+
+        </ul>
+           
+        <!-- Action Buttons -->
+        <div class="actions" style="margin-top: 20px;">
+            <a href="/download/<%= file.id %>">
+                <button type="button">Download File</button>
+            </a>
+            <a href="/">
+                <button type="button">Back to Dashboard</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
