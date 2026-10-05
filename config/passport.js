@@ -1,7 +1,7 @@
 const passport = require("passport")
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcryptjs");
-const prisma = require("../lib/prisma"); // Change this path to wherever your database pool is!
+const prisma = require("../lib/prisma.js"); // Change this path to wherever your database pool is!
 
 passport.use(
   new LocalStrategy(async (username, password, done) => {

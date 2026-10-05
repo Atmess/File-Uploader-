@@ -5,7 +5,10 @@ const { validationResult } = require("express-validator");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY; // Ensure this matches your Render key name
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const DURATIONS = {
   '1h': 60 * 60 * 1000,
