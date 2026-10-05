@@ -8,6 +8,13 @@ const multer = require("multer");
 const { createClient, AuthWeakPasswordError } = require("@supabase/supabase-js");
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
+    const DURATIONS = {
+  '1h': 60 * 60 * 1000,
+  '1d': 24 * 60 * 60 * 1000,
+  '7d': 7 * 24 * 60 * 60 * 1000,
+  '30d': 30 * 24 * 60 * 60 * 1000,
+};
+
 const createUserPost = async (req,res)=>{
     const error = validationResult(req);
     if(!error.isEmpty()){
@@ -335,23 +342,93 @@ const downloadFileGet = async (req,res)=>{
     if(!file || file.userId !== req.user.id){
         return res.status(403).send("Unauthorized to edit this file.")
     }
-    const filepath = path.join(process.cwd(),file.url)
-    const fileExtension = path.extname(file.url);
+    const fileUrl = decodeURIComponent(file.url)
+    const urlPath = new URL(fileUrl).pathname
+    const fileExtension = path.extname(urlPath);
         
         // 2. Check if the file.name already has the extension. If not, add it!
         let downloadName = file.name;
         if (!downloadName.endsWith(fileExtension)) {
             downloadName += fileExtension;
         }
-    res.download(filepath, downloadName);
+    const response = await fetch(fileUrl);
+
+    if (!response.ok) {
+      return res.status(404).send("File not found on remote storage.");
+    }
+    // 5. Set headers to force browser file download with custom filename
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(downloadName)}"`);
+
+    // 6. Pipe the readable stream directly to Node's express response
+    const { Readable } = require('stream');
+    Readable.fromWeb(response.body).pipe(res);
+
+
     }catch(err){
         console.error(err)
         res.status(500).send("error downloading file")
     }
-
-
 }
-module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost,editfoldernamePost,editfilename,fileinfoGet,
-    downloadFileGet
 
+const shareLinkPost = async (req,res)=>{
+        if (!req.user) {
+        return res.redirect("/log-in");
+    }
+    try{
+        const folderId = parseInt(req.params.id)
+        const folder = await prisma.folder.findUnique({
+            where:{id:folderId}
+        })
+        if(!folder || folder.userId !== req.user.id){
+            return res.status(403).send("unautorize to do this")
+        }
+        const duration = req.body.duration
+        const durationinMs = DURATIONS[duration] || DURATIONS['1d']
+        const expireat = new Date(Date.now() + durationinMs)
+        const shareLink = await prisma.shareLink.create({
+            data:{
+                userId:req.user.id,
+                folderId:folderId,
+                expiresAt:expireat
+            }
+        })
+
+        res.redirect(`/share-created/${shareLink.id}`)
+    }catch(error){
+        console.error(error)
+        res.status(500).send("error in creating link")
+    }
+}
+
+const shareLinkResultGet = async (req, res) => {
+  if (!req.user) {
+    return res.redirect("/log-in");
+  }
+
+  try {
+    const shareId = req.params.id;
+
+    const shareLink = await prisma.shareLink.findUnique({
+      where: { id: shareId }
+    });
+
+    // Ensure the link exists and belongs to the logged-in user
+    if (!shareLink || shareLink.userId !== req.user.id) {
+      return res.status(404).send("Share link not found");
+    }
+
+    const shareableUrl = `${req.protocol}://${req.get('host')}/share/${shareLink.id}`;
+
+    res.render('share-result', {
+      shareableUrl,
+      expiresAt: shareLink.expiresAt
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error loading share link details");
+  }
+};
+module.exports={createUserPost,uploadfile,dashboard,createFolderPost,getFolderGet,deletefilePost,deletefolderPost,moveFilePost,editfoldernamePost,editfilename,fileinfoGet,
+    downloadFileGet,shareLinkPost,shareLinkResultGet
 }

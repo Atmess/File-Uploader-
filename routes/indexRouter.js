@@ -17,6 +17,8 @@ indexRouter.post("/editname/:id",controller.editfoldernamePost)
 indexRouter.post("/editfilename/:id",controller.editfilename)
 indexRouter.get("/file/:id",controller.fileinfoGet)
 indexRouter.get("/download/:id",controller.downloadFileGet)
+indexRouter.post("/folders/:id/share",controller.shareLinkPost)
+indexRouter.get("/share-created/:id",controller.shareLinkResultGet)
 indexRouter.get("/log-in",(req,res)=>res.render("log-in"))
 indexRouter.post("/log-in",passport.authenticate("local", {
     successRedirect: "/",

@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Uploader - My Drive</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+        .folder-card, .file-card { background: white; padding: 16px; border: 1px solid #ddd; border-radius: 8px; max-width: 220px; }
+        .modal-box { background: #fff; padding: 12px; border: 1px solid #ccc; margin-top: 8px; border-radius: 6px; }
+    </style>
 </head>
 <body>
     <header>
-        <h1>File Uploader</h1>
+        <a href="/"><h1 style="color: #333;">File Uploader</h1></a>
         <nav>
             <% if (locals.user) { %>
                 <span>Welcome, <%= user.username %>!</span>
                 <div style="margin-bottom: 20px;">
                     <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
-                         My Drive (Home)
+                        My Drive (Home)
                     </a>
                 </div>
                 <a href="/log-out">Log Out</a>
@@ -26,173 +32,164 @@
 
     <main>
         <% if (locals.user) { %>
-            <!-- DASHBOARD: Shown only to logged-in users -->
             <section>
                 <h2>Your Dashboard</h2>
                 
                 <div class="actions">
-                    <button id="createFolderbtn" onclick=" 
-                        document.getElementById('createFolder').style.display='inline';
-                        document.getElementById('createFolderbtn').style.display='none'
+                    <button id="createFolderbtn" onclick="
+                        document.getElementById('createFolder').style.display='block';
+                        this.style.display='none';
                         document.getElementById('uploadFile').style.display='none';
-                        document.getElementById('uploadFilebtn').style.display='inline';
-                        ">Create New Folder</button>
+                        document.getElementById('uploadFilebtn').style.display='inline-block';
+                    ">Create New Folder</button>
+
                     <button id="uploadFilebtn" onclick="
-                        document.getElementById('uploadFile').style.display='inline';
-                        document.getElementById('uploadFilebtn').style.display='none';
-                         document.getElementById('createFolder').style.display='none';
-                         document.getElementById('createFolderbtn').style.display='inline';
+                        document.getElementById('uploadFile').style.display='block';
+                        this.style.display='none';
+                        document.getElementById('createFolder').style.display='none';
+                        document.getElementById('createFolderbtn').style.display='inline-block';
                     ">Upload File</button>
-                    
                 </div>
-                <div>
-                     <form action="/folders/new" method="post" id="createFolder" style="display: none;" onsubmit="
-                         document.getElementById('createFolder').style.display='none';
-                         document.getElementById('createFolderbtn').style.display='inline'
-                    ">
-                        <label for="foldername">Input name:</label>
-                        <input type="text" id="foldername" name="foldername">
-                        <button type="submit">Create folder</button>
-                    </form><br>
-                   <form action="/upload/<%= locals.currentFolderId || '' %>" method="post" enctype="multipart/form-data" id="uploadFile" style="display: none;" onsubmit="
-                        document.getElementById('uploadFile').style.display='none';
-                        document.getElementById('uploadFilebtn').style.display='inline'
-                   ">
-                    <input type="file" name="upload" id="upload"><br>
-                    <button type="submit">Upload</button>
-                   </form>
+
+                <div style="margin-top: 12px;">
+                    <!-- Create Folder Form -->
+                    <form action="/folders/new" method="POST" id="createFolder" style="display: none;">
+                        <label for="foldername">Folder Name:</label>
+                        <input type="text" id="foldername" name="foldername" required>
+                        <button type="submit">Create</button>
+                    </form>
+
+                    <!-- Upload File Form -->
+                    <form action="/upload/<%= locals.currentFolderId || '' %>" method="POST" enctype="multipart/form-data" id="uploadFile" style="display: none;">
+                        <input type="file" name="upload" id="upload" required><br><br>
+                        <button type="submit">Upload</button>
+                    </form>
                 </div>
 
                 <div class="content">
                     <h3>Folders</h3>
-                    <!-- You will loop over folders here later -->
-                     <% if(locals.folders && folders.length>0){ %>
-
-                        <div style="display: flex; flex-direction: row;" >
-
-                            <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
-                                <div style="display: flex; flex-direction: column;">
+                    <div class="flex-row">
+                        <!-- Home link -->
+                        <div class="folder-card">
+                            <a href="/" style="text-decoration: none; color: #007bff;">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                             <!-- Notice the space between M22 and 19 below: -->
-                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                                        </svg>
-                                       
-                                         <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
-                                            Home
-                                        </span>
-                                        </div>                                
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <div><strong>Home</strong></div>
                             </a>
-                            <% folders.forEach ((folder)=>{ %>
-                                
-                                
-                                <div style="display: flex; flex-direction: column;">
-                                    <a href="/folder/<%= folder.id %>" style="display: flex; flex-direction: column;" >
-                                        <!-- This SVG is the Folder Icon (from Feather Icons) -->
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                             <!-- Notice the space between M22 and 19 below: -->
-                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                                        </svg>
-                                       
-                                         <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
-                                            <%= folder.name %>
-                                        </span>
-                                        </a>
-                                        <form action="/deletefolder/<%= folder.id %>" method="post">
-                                            <button type="submit">Delete folder</button>
-                                        </form>
-                                        <button type="button" onclick=" document.getElementById('iditname<%= folder.id %>').style.display='inline' ">edit name</button>
-
-                                        <form action="/editname/<%= folder.id %>" method="post" id="iditname<%= folder.id %>" style="display: none;">
-                                            <input type="text" name="editname"><br>
-                                            <button type="submit">submit</button>
-                                        </form>
-                                        
-                                     <!-- The Folder Name -->
-                
-                                </div>
-                                        
-                                
-                           <% }) %>
-
                         </div>
-                    <% }else{ %>
 
-                    <a href="/" style="text-decoration: none; font-size: 18px; font-weight: bold; color: #007bff;">
-                                <div style="display: flex; flex-direction: column;">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                             <!-- Notice the space between M22 and 19 below: -->
+                        <!-- Folder List -->
+                        <% if (locals.folders && folders.length > 0) { %>
+                            <% folders.forEach((folder) => { %>
+                                <div class="folder-card">
+                                    <a href="/folder/<%= folder.id %>" style="text-decoration: none; color: #333;">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                                         </svg>
-                                       
-                                         <span style="margin-top: 8px;  word-break: break-all; font-weight: bold;">
-                                            Home
-                                        </span>
-                                        </div>                                
-                            </a>
-                     <% } %>
-                    <h3>Files</h3>
-                    <% if(locals.files && files.length>0){ %>
-                    <!-- You will loop over files here later -->
-                     <div style="display: flex; flex-direction: row; gap: 10px;">
-                   <% files.forEach((file)=>{ %>
-                    <div > 
-                        <div ><a href="/file/<%= file.id %>">                   
-                    <img src="<%= file.url %>" alt="file.name" width="200" height="200">
-                    <p><%=  file.name %></p>
-                    </a>
-                    </div>
-                    <p>
-                        <%= new Date(file.uploadTime).toLocaleString('en-US', { 
-                            dateStyle: 'medium', 
-                            timeStyle: 'short' 
-                        }) %>
-                    </p>
-                    <form action="/deletefile/<%= file.id %>" method="post">
-                        <button type="submit">delete file</button>
-                    </form>
-                    <button type="button" onclick="
-                    document.getElementById('movefileform<%= file.id %>').style.display='inline'
-                    ">move file</button>
-                    <form action="/movefile/<%= file.id %>" method="POST" id="movefileform<%= file.id %>" style="display: none;" onsubmit="
-                    document.getElementById('movefileform<%= file.id %>').style.display='none'
-                    " >
-                        <select name="toFolder" id="toFolder">
-                            <option value="">Home folder</option>
-                            
-                            <!-- Make sure you pass the array of folders from your controller -->
-                            <% folders.forEach((folder) => { %>
-                                
-                                <!-- The value is the folder ID (for Prisma), the text is the name (for the user) -->
-                                <option value="<%= folder.id %>"> 
-                                    <%= folder.name %> 
-                                </option> 
+                                        <div style="word-break: break-all; font-weight: bold;"><%= folder.name %></div>
+                                    </a>
 
+                                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+                                        <!-- Edit Folder Name -->
+                                        <button type="button" onclick="
+                                            const f = document.getElementById('editFolderForm-<%= folder.id %>');
+                                            f.style.display = f.style.display === 'none' ? 'block' : 'none';
+                                        ">Rename</button>
+
+                                        <form action="/editname/<%= folder.id %>" method="POST" id="editFolderForm-<%= folder.id %>" style="display: none;" class="modal-box">
+                                            <input type="text" name="editname" value="<%= folder.name %>" required>
+                                            <button type="submit">Save</button>
+                                        </form>
+
+                                        <!-- Share Folder -->
+                                        <button type="button" onclick="
+                                            const s = document.getElementById('shareModal-<%= folder.id %>');
+                                            s.style.display = s.style.display === 'none' ? 'block' : 'none';
+                                        ">Share</button>
+
+                                        <div id="shareModal-<%= folder.id %>" style="display: none;" class="modal-box">
+                                            <form action="/folders/<%= folder.id %>/share" method="POST">
+                                                <label for="duration-<%= folder.id %>">Expires in:</label>
+                                                <select name="duration" id="duration-<%= folder.id %>" required>
+                                                    <option value="1h">1 Hour</option>
+                                                    <option value="1d" selected>1 Day</option>
+                                                    <option value="7d">7 Days</option>
+                                                    <option value="30d">30 Days</option>
+                                                </select>
+                                                <button type="submit">Generate Link</button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Delete Folder -->
+                                        <form action="/deletefolder/<%= folder.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this folder?');">
+                                            <button type="submit" style="color: red; width: 100%;">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
                             <% }) %>
-
-                        </select>
-                        
-                        <!-- You need a button to actually submit the form! -->
-                        <button type="submit">Move File</button>
-                    </form>
-                    <button type="button" onclick=" document.getElementById('iditfilename<%= file.id %>').style.display='inline' ">edit name</button>
-
-                    <form action="/editfilename/<%= file.id %>" method="post" id="iditfilename<%= file.id %>" style="display: none;">
-                        <input type="text" name="editfilename"><br>
-                        <button type="submit">submit</button>
-                    </form>
-                    <a href="/download/<%= file.id %>">
-                    <button type="button">Download File</button>
-                    </a>
+                        <% } %>
                     </div>
-                    <% }) %> 
-                   <% }else{ %>
-                    <p>no file here</p>
-                   <% } %>
-                </div>
+
+                    <h3>Files</h3>
+                    <% if (locals.files && files.length > 0) { %>
+                        <div class="flex-row">
+                            <% files.forEach((file) => { %>
+                                <div class="file-card">
+                                    <a href="/file/<%= file.id %>">
+                                        <img src="<%= file.url %>" alt="<%= file.name %>" style="width: 100%; height: 140px; object-fit: cover; border-radius: 4px;">
+                                        <p style="word-break: break-all;"><strong><%= file.name %></strong></p>
+                                    </a>
+                                    
+                                    <small><%= new Date(file.uploadTime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) %></small>
+
+                                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+                                        <!-- Download -->
+                                        <a href="/download/<%= file.id %>"><button type="button" style="width: 100%;">Download</button></a>
+
+                                        <!-- Move File -->
+                                        <button type="button" onclick="
+                                            const m = document.getElementById('movefileform<%= file.id %>');
+                                            m.style.display = m.style.display === 'none' ? 'block' : 'none';
+                                        ">Move</button>
+
+                                        <form action="/movefile/<%= file.id %>" method="POST" id="movefileform<%= file.id %>" style="display: none;" class="modal-box">
+                                            <select name="toFolder" >
+                                                <option value="">Home folder</option>
+                                                <% if (locals.folders) { %>
+                                                    <% folders.forEach((folder) => { %>
+                                                        <option value="<%= folder.id %>"><%= folder.name %></option>
+                                                    <% }) %>
+                                                <% } %>
+                                            </select>
+                                            <button type="submit">Move</button>
+                                        </form>
+
+                                        <!-- Edit File Name -->
+                                        <button type="button" onclick="
+                                            const e = document.getElementById('editfilename<%= file.id %>');
+                                            e.style.display = e.style.display === 'none' ? 'block' : 'none';
+                                        ">Rename</button>
+
+                                        <form action="/editfilename/<%= file.id %>" method="POST" id="editfilename<%= file.id %>" style="display: none;" class="modal-box">
+                                            <input type="text" name="editfilename" value="<%= file.name %>" required>
+                                            <button type="submit">Save</button>
+                                        </form>
+
+                                        <!-- Delete File -->
+                                        <form action="/deletefile/<%= file.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this file?');">
+                                            <button type="submit" style="color: red; width: 100%;">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p>No files in this folder.</p>
+                    <% } %>
                 </div>
             </section>
         <% } else { %>
-            <!-- HERO: Shown to visitors -->
             <section>
                 <h2>Store your files securely in the cloud.</h2>
                 <p>Create an account to start uploading your files and organizing them into folders.</p>
@@ -200,6 +197,5 @@
             </section>
         <% } %>
     </main>
-   
 </body>
 </html>

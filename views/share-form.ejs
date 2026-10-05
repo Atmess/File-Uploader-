@@ -1,0 +1,41 @@
+<!-- views/share-form.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Folder</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+    .card { background: white; padding: 24px; border-radius: 8px; max-width: 400px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    select, button { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+    button { background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 8px; font-weight: bold; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Share Folder</h2>
+    <p>Select how long this shareable link should be valid:</p>
+
+    <!-- Post request to your controller route -->
+    <form action="/folders/<%= folder.id %>/share" method="POST">
+      <div class="form-group">
+        <label for="duration">Expiration Time</label>
+        <select name="duration" id="duration" required>
+          <option value="1h">1 Hour</option>
+          <option value="1d" selected>1 Day</option>
+          <option value="7d">7 Days</option>
+          <option value="30d">30 Days</option>
+        </select>
+      </div>
+
+      <button type="submit">Generate Share Link</button>
+    </form>
+  </div>
+
+</body>
+</html>

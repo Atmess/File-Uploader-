@@ -1,0 +1,42 @@
+<!-- views/share-result.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Link Created</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+    .card { background: white; padding: 24px; border-radius: 8px; max-width: 480px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .link-box { display: flex; gap: 8px; margin-top: 12px; }
+    input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    button { padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #218838; }
+    .info { color: #555; font-size: 14px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Share Link Ready!</h2>
+    <p>Anyone with this link can view the contents of this folder until it expires.</p>
+
+    <div class="link-box">
+      <input type="text" id="shareUrl" value="<%= shareableUrl %>" readonly>
+      <button onclick="copyToClipboard()">Copy</button>
+    </div>
+
+    <p class="info">Expires on: <%= new Date(expiresAt).toLocaleString() %></p>
+  </div>
+
+  <script>
+    function copyToClipboard() {
+      const urlInput = document.getElementById('shareUrl');
+      urlInput.select();
+      navigator.clipboard.writeText(urlInput.value);
+      alert('Share link copied to clipboard!');
+    }
+  </script>
+
+</body>
+</html>
