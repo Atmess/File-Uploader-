@@ -27,6 +27,7 @@
     "@quixo3/prisma-session-store": "^3.1.21",
     "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
     "dotenv": "^18.0.5",
     "ejs": "^6.0.1",
     "express": "^5.2.1",

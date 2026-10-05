@@ -8,6 +8,8 @@ const { PrismaSessionStore } = require("@quixo3/prisma-session-store");
 const session = require ("express-session")
 const prisma = require("./lib/prisma")
 const indexRouter = require("./routes/indexRouter")
+const flash = require('connect-flash')
+
 
 
 app.set("views", path.join(__dirname, "views"));
@@ -30,6 +32,12 @@ app.use(
   })
 );
 
+app.use(flash());
+app.use((req, res, next) => {
+  res.locals.error = req.flash('error');
+  res.locals.success = req.flash('success');
+  next();
+});
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }));
 app.use("/",indexRouter);
